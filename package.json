@@ -1,0 +1,23 @@
+{
+  "name": "stream-concat",
+  "version": "0.1.0",
+  "description": "Simple and efficient node stream concatenation.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sedenardi/node-stream-concat.git"
+  },
+  "keywords": [
+    "node",
+    "stream",
+    "concat",
+    "streams",
+    "concatenation"
+  ],
+  "author": "Sanders DeNardi <sedenardi@gmail.com> (http://www.sandersdenardi.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sedenardi/node-stream-concat/issues"
+  },
+  "homepage": "https://github.com/sedenardi/node-stream-concat"
+}
