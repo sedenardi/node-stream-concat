@@ -22,6 +22,9 @@
   "homepage": "https://github.com/sedenardi/node-stream-concat",
   "dependencies": {
     "async": "^0.9.0",
+    "mocha": "^2.1.0"
+  },
+  "devDependencies": {
     "underscore": "^1.7.0"
   }
 }

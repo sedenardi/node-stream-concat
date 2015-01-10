@@ -23,7 +23,8 @@ util.inherits(StreamConcat, Transform);
 
 StreamConcat.prototype.run = function(cb){
   var self = this;
-  cb = (cb && _und.isFunction(cb)) ? cb : _und.noop();
+  cb = cb || function(){};
+
   return async.doWhilst(
     function(cb){
       var stream;
@@ -52,7 +53,7 @@ StreamConcat.prototype._transform = function(chunk, encoding, callback) {
 };
 
 StreamConcat.prototype._canAddStream = function() {
-  if(_und.isArray(this.streams)) return true;
+  if(_und.isArray(this.streams) && !_und.isEmpty(this.streams)) return true;
   else return false;
 };
 
