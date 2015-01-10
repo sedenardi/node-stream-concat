@@ -1,6 +1,6 @@
 {
   "name": "stream-concat",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Simple and efficient node stream concatenation.",
   "main": "index.js",
   "repository": {
@@ -22,9 +22,9 @@
   "homepage": "https://github.com/sedenardi/node-stream-concat",
   "dependencies": {
     "async": "^0.9.0",
-    "mocha": "^2.1.0"
+    "underscore": "^1.7.0"
   },
   "devDependencies": {
-    "underscore": "^1.7.0"
+    "mocha": "^2.1.0"
   }
 }
