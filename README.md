@@ -19,7 +19,7 @@ The simplest way to use StreamConcat is to supply an array of readable streams.
     var stream2 = createReadStream('file2.csv');
     var stream3 = createReadStream('file3.csv');
 
-    var combinedStream = new StreamConcat([stream1, stream2, stream3]).run();
+    var combinedStream = new StreamConcat([stream1, stream2, stream3]);
 
 However, when working with large amounts of data, this can lead to high memory usage and relatively poor performance (versus the original stream). This is because all streams' read queues are buffered and waiting to be read.
 
@@ -38,18 +38,9 @@ If we're reading from several large files, we can do the following.
       return fs.createReadStream(fileNames[fileIndex++]);
     };
 
-    var combinedStream = new StreamConcat(nextStream).run();
+    var combinedStream = new StreamConcat(nextStream);
 
 Once StreamConcat is done with a stream it'll call `nextStream` and start using the returned stream (if not null);
-
-Optionally pass a callback to be notified when concatenated stream has been processed.
-
-    var start = new Date().getTime();
-    var combinedStream = new StreamConcat(nextStream).run(function(err){
-        if(err) throw err;
-        console.log("Stream took %s seconds to process", ((new Date().getTime() - start)/1000));
-    });
-
 
 ## options
 These are standard `Stream` [options](http://nodejs.org/api/stream.html#stream_new_stream_transform_options) passed to the underlying `Transform` stream.
