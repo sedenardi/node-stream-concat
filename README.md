@@ -52,6 +52,9 @@ These are standard `Stream` [options](http://nodejs.org/api/stream.html#stream_n
 * `encoding` String If specified, then buffers will be decoded to strings using the specified encoding. Default=null
 * `objectMode` Boolean Whether this stream should behave as a stream of objects. Meaning that stream.read(n) returns a single value instead of a Buffer of size n. Default=false
 
+Additional options:
+* `close` Boolean Controls if the concatenation should move onto the next stream when the underlying streams emit close event, useful when operating on `Transform` streams and calling destroy on them to skip the remaining data. Default=false
+
 ## StreamConcat.addStream(newStream)
 If you've created the StreamConcat object from an array of streams, you can use `addStream()` as long as the last stream hasn't finishing being read (StreamConcat hasn't emitted the `end` event).
 

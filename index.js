@@ -2,6 +2,9 @@ var Transform = require('stream').Transform,
     util = require('util');
 
 var StreamConcat = function(streams, options) {
+  if (!options)
+    options = {};
+
   Transform.call(this, options);
 
   var self = this;
@@ -22,9 +25,20 @@ var StreamConcat = function(streams, options) {
     if (self.currentStream === null) {
       this.canAddStream = false;
       self.push(null);
-    } else {
+    } else {  
       self.currentStream.pipe(self, {end: false});
-      self.currentStream.on('end', nextStream);
+      var next = false;
+      var goNext = function() {
+        if (next)
+          return;
+
+        next = true;
+        nextStream();
+      };
+
+      self.currentStream.on('end', goNext);
+      if (options.close)
+        self.currentStream.on('close', goNext);
     }
   };
 
