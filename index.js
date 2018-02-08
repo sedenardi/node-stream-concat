@@ -25,20 +25,21 @@ var StreamConcat = function(streams, options) {
     if (self.currentStream === null) {
       this.canAddStream = false;
       self.push(null);
-    } else {  
+    } else {
       self.currentStream.pipe(self, {end: false});
-      var next = false;
+      var streamClosed = false;
       var goNext = function() {
-        if (next)
+        if (streamClosed) {
           return;
-
-        next = true;
+        }
+        streamClosed = true;
         nextStream();
       };
 
       self.currentStream.on('end', goNext);
-      if (options.close)
+      if (options.advanceOnClose) {
         self.currentStream.on('close', goNext);
+      }
     }
   };
 

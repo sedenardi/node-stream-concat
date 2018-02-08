@@ -12,7 +12,7 @@ util.inherits(CustomStream, Readable);
 CustomStream.prototype._read = function(size) {
   if (this.destroyed)
 	  return;
-  
+
   this.push(", while this will be skipped,");
   this.push(null);
 };
@@ -23,7 +23,7 @@ CustomStream.prototype._destroy = function(err, callback) {
   setTimeout(() => {
     this.destroyed = true;
     this.emit("close", null);
-    callback(); 
+    callback();
   });
 };
 
@@ -40,22 +40,22 @@ describe('Concatenation with close', function() {
 	  new CustomStream(),
 	  fs.createReadStream(file2Path),
 	];
-	
+
 	var index = 0;
     var combinedStream = new StreamConcat(function() {
 	  var stream = streams[index];
-	  
+
 	  if (!stream)
 	    return null;
-	  
+
 	  if (index === 1)
 	    stream.destroy();
-	  
+
 	  index++;
-	
+
 	  return stream;
 	}, {
-		close: true
+		advanceOnClose: true
 	});
 
     var output = fs.createWriteStream(outputPath);

@@ -1,6 +1,6 @@
 var fs = require('fs');
 var path = require('path');
-const assert = require('assert');
+var assert = require('assert');
 
 var file1Path = path.join(__dirname, 'file1.txt');
 var file2Path = path.join(__dirname, 'file2.txt');
