@@ -7,8 +7,10 @@ Simple and efficient node stream concatenation.
 
 # Usage
 
-    var StreamConcat = require('stream-concat');
-    var combinedStream = new StreamConcat(streams, [options]);
+```js
+  var StreamConcat = require('stream-concat');
+  var combinedStream = new StreamConcat(streams, [options]);
+```
 
 ## streams
 The simplest way to use StreamConcat is to supply an array of readable streams.
