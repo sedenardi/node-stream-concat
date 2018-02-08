@@ -21,6 +21,9 @@ describe('Concatenation', function() {
   });
   it('output should be combination of two files', function() {
     var output = fs.readFileSync(outputPath);
-    assert('The quick brown fox jumps over the lazy dog.', output.toString());
+    assert.equal('The quick brown fox jumps over the lazy dog.', output.toString());
+  });
+  after(function() {
+    fs.unlinkSync(outputPath);
   });
 });
