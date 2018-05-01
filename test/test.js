@@ -5,6 +5,7 @@ var assert = require('assert');
 var file1Path = path.join(__dirname, 'file1.txt');
 var file2Path = path.join(__dirname, 'file2.txt');
 var outputPath = path.join(__dirname, 'output.txt');
+var outputPathIssue6 = path.join(__dirname, 'issue-6.dat');
 
 var StreamConcat = require('../index');
 
@@ -23,7 +24,42 @@ describe('Concatenation', function() {
     var output = fs.readFileSync(outputPath);
     assert.equal('The quick brown fox jumps over the lazy dog.', output.toString());
   });
+
+  it('#6)', function(done) {
+    var stream = require('stream');
+    var $ = function(buff) {
+      return new stream.Readable({
+        read: function() {
+          this.push(buff);
+          buff = null;
+        }
+      });
+    };
+
+    var header = Buffer.alloc(5);
+    var footer = Buffer.alloc(5);
+    var total = header.length+footer.length;
+    var all = [$(header)];
+    for (var i = 0; i < 5; i++) {
+      var one = Buffer.alloc(30*1024);
+      var two = Buffer.alloc(30*1024);
+      total += one.length + two.length;
+      all.push( new StreamConcat([ $(one), $(two) ]) );
+    }
+    all.push($(footer));
+    var master = new StreamConcat(all);
+    var file = outputPathIssue6;
+    var output = fs.createWriteStream(file);
+    master.pipe(output);
+    output.on('finish', function() {
+      assert.equal(fs.readFileSync(file).length, total);
+      done();
+    });
+
+  });
+
   after(function() {
     fs.unlinkSync(outputPath);
+    fs.unlinkSync(outputPathIssue6);
   });
 });
