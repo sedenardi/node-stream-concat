@@ -24,7 +24,7 @@ var StreamConcat = function(streams, options) {
 
     if (self.currentStream === null) {
       this.canAddStream = false;
-      self.push(null);
+      self.end();
     } else {
       self.currentStream.pipe(self, {end: false});
       var streamClosed = false;
