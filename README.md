@@ -1,7 +1,7 @@
 # node-stream-concat
 Simple and efficient node stream concatenation.
 
-`node-stream-concat` concatenates several streams into one single readable stream. The input streams can either be existing streams or can be determined on the fly by a user specified function. `node-stream-concat` has been tested from Node versions v0.12 through v9.2.0.
+`node-stream-concat` concatenates several streams into one single readable stream. The input streams can either be existing streams or can be determined on the fly by a user specified function. `node-stream-concat` has been tested from Node versions v8.0.0 through v10.0.0, but should work with versions down to v0.12 (tests will fail < 8.0.0 because of `.destroy()`).
 
     npm install stream-concat
 
