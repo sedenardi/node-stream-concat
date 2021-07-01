@@ -1,6 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var assert = require('assert');
+var Readable = require('stream').Readable;
 
 var file1Path = path.join(__dirname, 'file1.txt');
 var file2Path = path.join(__dirname, 'file2.txt');
@@ -56,6 +57,22 @@ describe('Concatenation', function() {
       done();
     });
 
+  });
+
+  it('output should be streamed with async callback', function(done) {
+    var streams = [Readable.from(['concatenated']), Readable.from([' ']), Readable.from(['results'])];
+    var combined_stream = new StreamConcat(function() {
+      return new Promise(function(resolve) {
+        setTimeout(function(){ resolve(streams.shift() || null); }, 10);
+      });
+    });
+
+    var chunks = [];
+    combined_stream.on('data', function(chunk){ console.log('DATA', chunk.toString()); chunks.push(chunk); });
+    combined_stream.on('end', function(){
+      assert.equal(Buffer.concat(chunks).toString(), 'concatenated results');
+      done();
+    });
   });
 
   after(function() {
