@@ -1,70 +1,62 @@
-var Transform = require('stream').Transform,
-    util = require('util');
+const { Transform } = require('stream');
 
-var StreamConcat = function(streams, options) {
-  if (!options)
-    options = {};
+class StreamConcat extends Transform {
+  constructor(streams, options = { }) {
+    super(options);
+    this.streams = streams;
+    this.options = options;
+    this.canAddStream = true;
+    this.currentStream = null;
+    this.streamIndex = 0;
 
-  Transform.call(this, options);
-
-  var self = this;
-
-  this.streams = streams;
-  this.canAddStream = true;
-  this.currentStream = null;
-  this.streamIndex = 0;
-  var nextStream = function() {
-    self.currentStream = null;
-    if (self.streams.constructor === Array && self.streamIndex < self.streams.length) {
-      self.currentStream = self.streams[self.streamIndex++];
-    } else if (typeof self.streams === 'function') {
+    this.nextStream();
+  }
+  addStream(newStream) {
+    if (!this.canAddStream) {
+      return this.emit('error', new Error('Can\'t add stream.'));
+    }
+    this.streams.push(newStream);
+  }
+  nextStream() {
+    this.currentStream = null;
+    if (this.streams.constructor === Array && this.streamIndex < this.streams.length) {
+      this.currentStream = this.streams[this.streamIndex++];
+    } else if (typeof this.streams === 'function') {
       this.canAddStream = false;
-      self.currentStream = self.streams();
+      this.currentStream = this.streams();
     }
 
-    var pipeStream = function(){
-      if (self.currentStream === null) {
+    const pipeStream = () => {
+      if (this.currentStream === null) {
         this.canAddStream = false;
-        self.end();
-      } else if (typeof self.currentStream.then=='function') {
-        self.currentStream.then(function(s){
-          self.currentStream = s;
+        this.end();
+      } else if (typeof this.currentStream.then === 'function') {
+        this.currentStream.then((s) => {
+          this.currentStream = s;
           pipeStream();
         });
       } else {
-        self.currentStream.pipe(self, {end: false});
-        var streamClosed = false;
-        var goNext = function() {
+        this.currentStream.pipe(this, { end: false });
+        let streamClosed = false;
+        const goNext = () => {
           if (streamClosed) {
             return;
           }
           streamClosed = true;
-          nextStream();
+          this.nextStream();
         };
   
-        self.currentStream.on('end', goNext);
-        if (options.advanceOnClose) {
-          self.currentStream.on('close', goNext);
+        this.currentStream.on('end', goNext);
+        if (this.options.advanceOnClose) {
+          this.currentStream.on('close', goNext);
         }
       }
     };
     pipeStream();
-  };
-
-  nextStream();
-};
-
-util.inherits(StreamConcat, Transform);
-
-StreamConcat.prototype._transform = function(chunk, encoding, callback) {
-  callback(null, chunk);
-};
-
-StreamConcat.prototype.addStream = function(newStream) {
-  if (this.canAddStream)
-    this.streams.push(newStream);
-  else
-    this.emit('error', new Error('Can\'t add stream.'));
-};
+  }
+  _transform(chunk, encoding, callback) {
+    callback(null, chunk);
+  }
+}
 
 module.exports = StreamConcat;

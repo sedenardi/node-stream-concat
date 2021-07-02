@@ -1,72 +1,76 @@
-var fs = require('fs');
-var path = require('path');
-var assert = require('assert');
-var util = require('util');
-var Readable = require('stream').Readable;
+/* eslint prefer-arrow-callback: ["off"] */
 
-function CustomStream(options) {
-  Readable.call(this, options);
+const fs = require('fs');
+const path = require('path');
+const assert = require('assert');
+const { Readable } = require('stream');
+
+const file1Path = path.join(__dirname, 'file1.txt');
+const file2Path = path.join(__dirname, 'file2.txt');
+const outputPath = path.join(__dirname, 'output-advanceOnClose.txt');
+
+const StreamConcat = require('../index');
+
+class CustomStream extends Readable {
+  constructor(options) {
+    super(options);
+  }
+  _read() {
+    if (this.destroyed) {
+      return;
+    }
+  
+    this.push(', while this will be skipped,');
+    this.push(null);
+  }
+  _destroy(err, callback) {
+    if (err) {
+      return callback(err);
+    }
+    // This need to happen at least in the next event loop,
+    // since destroy is called before registering the close event handler
+    setTimeout(() => {
+      this.destroyed = true;
+      this.emit('close', null);
+      callback();
+    });
+  }
 }
-util.inherits(CustomStream, Readable);
-
-CustomStream.prototype._read = function(size) {
-  if (this.destroyed)
-	  return;
-
-  this.push(", while this will be skipped,");
-  this.push(null);
-};
-
-CustomStream.prototype._destroy = function(err, callback) {
-  // This need to happen at least in the next event loop,
-  // since destroy is called before registering the close event handler
-  setTimeout(() => {
-    this.destroyed = true;
-    this.emit("close", null);
-    callback();
-  });
-};
-
-var file1Path = path.join(__dirname, 'file1.txt');
-var file2Path = path.join(__dirname, 'file2.txt');
-var outputPath = path.join(__dirname, 'output.txt');
-
-var StreamConcat = require('../index');
 
 describe('Concatenation with close', function() {
   before(function(done) {
-	var streams = [
-	  fs.createReadStream(file1Path),
-	  new CustomStream(),
-	  fs.createReadStream(file2Path),
-	];
+    const streams = [
+      fs.createReadStream(file1Path),
+      new CustomStream(),
+      fs.createReadStream(file2Path),
+    ];
 
-	var index = 0;
-    var combinedStream = new StreamConcat(function() {
-	  var stream = streams[index];
+    let index = 0;
+    const combinedStream = new StreamConcat(() => {
+      const stream = streams[index];
+      if (!stream) {
+        return null;
+      }
+      if (index === 1) {
+        stream.destroy();
+      }
+      index++;
+      return stream;
+    }, {
+      advanceOnClose: true
+    });
 
-	  if (!stream)
-	    return null;
-
-	  if (index === 1)
-	    stream.destroy();
-
-	  index++;
-
-	  return stream;
-	}, {
-		advanceOnClose: true
-	});
-
-    var output = fs.createWriteStream(outputPath);
-    output.on('finish', function() { done(); });
+    const output = fs.createWriteStream(outputPath);
+    output.on('finish', () => { done(); });
 
     combinedStream.pipe(output);
   });
+  
   it('output should be combination of two files, skipping the custom stream', function() {
-    var output = fs.readFileSync(outputPath);
-    assert.equal('The quick brown fox jumps over the lazy dog.', output.toString());
+    const output = fs.readFileSync(outputPath);
+    assert.strictEqual(output.toString(), 'The quick brown fox jumps over the lazy dog.');
   });
+
   after(function() {
     fs.unlinkSync(outputPath);
   });

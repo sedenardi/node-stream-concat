@@ -1,34 +1,36 @@
-var fs = require('fs');
-var path = require('path');
-var assert = require('assert');
-var Readable = require('stream').Readable;
+/* eslint prefer-arrow-callback: ["off"] */
 
-var file1Path = path.join(__dirname, 'file1.txt');
-var file2Path = path.join(__dirname, 'file2.txt');
-var outputPath = path.join(__dirname, 'output.txt');
-var outputPathIssue6 = path.join(__dirname, 'issue-6.dat');
+const fs = require('fs');
+const path = require('path');
+const assert = require('assert');
+const { Readable } = require('stream');
 
-var StreamConcat = require('../index');
+const file1Path = path.join(__dirname, 'file1.txt');
+const file2Path = path.join(__dirname, 'file2.txt');
+const outputPath = path.join(__dirname, 'output.txt');
+const outputPathIssue6 = path.join(__dirname, 'issue-6.dat');
+
+const StreamConcat = require('../index');
 
 describe('Concatenation', function() {
   before(function(done) {
-    var file1 = fs.createReadStream(file1Path);
-    var file2 = fs.createReadStream(file2Path);
-    var combinedStream = new StreamConcat([file1, file2]);
+    const file1 = fs.createReadStream(file1Path);
+    const file2 = fs.createReadStream(file2Path);
+    const combinedStream = new StreamConcat([file1, file2]);
 
-    var output = fs.createWriteStream(outputPath);
-    output.on('finish', function() { done(); });
+    const output = fs.createWriteStream(outputPath);
+    output.on('finish', () => { done(); });
 
     combinedStream.pipe(output);
   });
   it('output should be combination of two files', function() {
-    var output = fs.readFileSync(outputPath);
-    assert.equal('The quick brown fox jumps over the lazy dog.', output.toString());
+    const output = fs.readFileSync(outputPath);
+    assert.strictEqual(output.toString(), 'The quick brown fox jumps over the lazy dog.');
   });
 
   it('#6)', function(done) {
-    var stream = require('stream');
-    var $ = function(buff) {
+    const stream = require('stream');
+    const $ = function(buff) {
       return new stream.Readable({
         read: function() {
           this.push(buff);
@@ -37,40 +39,42 @@ describe('Concatenation', function() {
       });
     };
 
-    var header = Buffer.alloc(5);
-    var footer = Buffer.alloc(5);
-    var total = header.length+footer.length;
-    var all = [$(header)];
-    for (var i = 0; i < 5; i++) {
-      var one = Buffer.alloc(30*1024);
-      var two = Buffer.alloc(30*1024);
+    const header = Buffer.alloc(5);
+    const footer = Buffer.alloc(5);
+    let total = header.length + footer.length;
+    const all = [$(header)];
+    for (let i = 0; i < 5; i++) {
+      const one = Buffer.alloc(30 * 1024);
+      const two = Buffer.alloc(30 * 1024);
       total += one.length + two.length;
-      all.push( new StreamConcat([ $(one), $(two) ]) );
+      all.push(new StreamConcat([$(one), $(two)]));
     }
     all.push($(footer));
-    var master = new StreamConcat(all);
-    var file = outputPathIssue6;
-    var output = fs.createWriteStream(file);
+    const master = new StreamConcat(all);
+    const file = outputPathIssue6;
+    const output = fs.createWriteStream(file);
     master.pipe(output);
-    output.on('finish', function() {
-      assert.equal(fs.readFileSync(file).length, total);
+    output.on('finish', () => {
+      assert.strictEqual(fs.readFileSync(file).length, total);
       done();
     });
 
   });
 
   it('output should be streamed with async callback', function(done) {
-    var streams = [Readable.from(['concatenated']), Readable.from([' ']), Readable.from(['results'])];
-    var combined_stream = new StreamConcat(function() {
-      return new Promise(function(resolve) {
-        setTimeout(function(){ resolve(streams.shift() || null); }, 10);
+    const streams = [Readable.from(['concatenated']), Readable.from([' ']), Readable.from(['results'])];
+    const combined_stream = new StreamConcat(() => {
+      return new Promise((resolve) => {
+        setTimeout(() => { resolve(streams.shift() || null); }, 10);
       });
     });
 
-    var chunks = [];
-    combined_stream.on('data', function(chunk){ console.log('DATA', chunk.toString()); chunks.push(chunk); });
-    combined_stream.on('end', function(){
-      assert.equal(Buffer.concat(chunks).toString(), 'concatenated results');
+    const chunks = [];
+    combined_stream.on('data', (chunk) => {
+      console.log('DATA', chunk.toString()); chunks.push(chunk);
+    });
+    combined_stream.on('end', () => {
+      assert.strictEqual(Buffer.concat(chunks).toString(), 'concatenated results');
       done();
     });
   });
