@@ -1,30 +1,30 @@
 # node-stream-concat
 Simple and efficient node stream concatenation.
 
-`node-stream-concat` concatenates several streams into one single readable stream. The input streams can either be existing streams or can be determined on the fly by a user specified function. `node-stream-concat` has been tested from Node versions v8.0.0 through v10.0.0, but should work with versions down to v0.12 (tests will fail < 8.0.0 because of `.destroy()`).
+`node-stream-concat` concatenates several streams into one single readable stream. The input streams can either be existing streams or can be determined on the fly by a user specified function. Because the library and tests use modern APIs, `node-stream-concat` supports Node LTS versions. Prior versions of the library (`< 1.0.0`) have been tested from Node versions v8.0.0 through v10.0.0, but should work with versions down to v0.12 (tests will fail < 8.0.0 because of .destroy()).
 
     npm install stream-concat
 
 # Usage
 
 ```js
-  var StreamConcat = require('stream-concat');
-  var combinedStream = new StreamConcat(streams, [options]);
+  const StreamConcat = require('stream-concat');
+  const combinedStream = new StreamConcat(streams, [options]);
 ```
 
 ## streams
 The simplest way to use StreamConcat is to supply an array of readable streams.
 
 ```js
-var fs = require('fs');
+const fs = require('fs');
 
-var stream1 = fs.createReadStream('file1.csv');
-var stream2 = fs.createReadStream('file2.csv');
-var stream3 = fs.createReadStream('file3.csv');
+const stream1 = fs.createReadStream('file1.csv');
+const stream2 = fs.createReadStream('file2.csv');
+const stream3 = fs.createReadStream('file3.csv');
 
-var output = fs.createWriteStream('combined.csv');
+const output = fs.createWriteStream('combined.csv');
 
-var combinedStream = new StreamConcat([stream1, stream2, stream3]);
+const combinedStream = new StreamConcat([stream1, stream2, stream3]);
 combinedStream.pipe(output);
 ```
 
@@ -35,22 +35,40 @@ A better way is to defer opening a new stream until the moment it's needed. You 
 If we're reading from several large files, we can do the following.
 
 ```js
-var fs = require('fs');
+const fs = require('fs');
 
-var fileNames = ['file1.csv', 'file2.csv', 'file3.csv'];
-var fileIndex = 0;
-var nextStream = function() {
+const fileNames = ['file1.csv', 'file2.csv', 'file3.csv'];
+const fileIndex = 0;
+const nextStream = () => {
   if (fileIndex === fileNames.length) {
     return null;
   }
-
   return fs.createReadStream(fileNames[fileIndex++]);
 };
 
-var combinedStream = new StreamConcat(nextStream);
+const combinedStream = new StreamConcat(nextStream);
 ```
 
-Once StreamConcat is done with a stream it'll call `nextStream` and start using the returned stream (if not null);
+Once StreamConcat is done with a stream it'll call `nextStream` and start using the returned stream (if not null).
+
+Additionally, the function you pass to the constructor can return a `Promise` that resolves to a `stream`.
+
+```js
+const fs = require('fs');
+
+const fileNames = ['file1.csv', 'file2.csv', 'file3.csv'];
+const fileIndex = 0;
+const nextStreamAsync = () => {
+  return new Promise((res) => {
+    if (fileIndex === fileNames.length) {
+      return null;
+    }
+    return fs.createReadStream(fileNames[fileIndex++]);
+  });
+};
+
+const combinedStream = new StreamConcat(nextStreamAsync);
+```
 
 ## options
 These are standard `Stream` [options](http://nodejs.org/api/stream.html#stream_new_stream_transform_options) passed to the underlying `Transform` stream.

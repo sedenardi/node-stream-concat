@@ -11,6 +11,9 @@
     "eslint:recommended",
     "plugin:mocha/recommended"
   ],
+  "parserOptions": {
+    "ecmaVersion": 2017
+  },
   "rules": {
     "array-bracket-spacing": ["error"],
     "array-callback-return": ["error"],
@@ -31,7 +34,7 @@
     "mocha/no-hooks-for-single-case": ["off"],
     "new-cap": ["error", {"capIsNew": false}],
     "newline-per-chained-call": ["off"],
-    "no-console": "off",
+    "no-console": ["error"],
     "no-iterator": ["error"],
     "no-mixed-requires": ["error"],
     "no-nested-ternary": ["off"],

@@ -71,7 +71,7 @@ describe('Concatenation', function() {
 
     const chunks = [];
     combined_stream.on('data', (chunk) => {
-      console.log('DATA', chunk.toString()); chunks.push(chunk);
+      chunks.push(chunk);
     });
     combined_stream.on('end', () => {
       assert.strictEqual(Buffer.concat(chunks).toString(), 'concatenated results');

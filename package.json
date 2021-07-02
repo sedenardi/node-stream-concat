@@ -1,6 +1,9 @@
 {
   "name": "stream-concat",
-  "version": "0.3.0",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=12"
+  },
   "description": "Simple and efficient node stream concatenation.",
   "main": "index.js",
   "repository": {

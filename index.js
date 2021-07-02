@@ -17,7 +17,7 @@ class StreamConcat extends Transform {
     }
     this.streams.push(newStream);
   }
-  nextStream() {
+  async nextStream() {
     this.currentStream = null;
     if (this.streams.constructor === Array && this.streamIndex < this.streams.length) {
       this.currentStream = this.streams[this.streamIndex++];
@@ -26,24 +26,22 @@ class StreamConcat extends Transform {
       this.currentStream = this.streams();
     }
 
-    const pipeStream = () => {
+    const pipeStream = async () => {
       if (this.currentStream === null) {
         this.canAddStream = false;
         this.end();
       } else if (typeof this.currentStream.then === 'function') {
-        this.currentStream.then((s) => {
-          this.currentStream = s;
-          pipeStream();
-        });
+        this.currentStream = await this.currentStream;
+        await pipeStream();
       } else {
         this.currentStream.pipe(this, { end: false });
         let streamClosed = false;
-        const goNext = () => {
+        const goNext = async () => {
           if (streamClosed) {
             return;
           }
           streamClosed = true;
-          this.nextStream();
+          await this.nextStream();
         };
   
         this.currentStream.on('end', goNext);
@@ -52,7 +50,7 @@ class StreamConcat extends Transform {
         }
       }
     };
-    pipeStream();
+    await pipeStream();
   }
   _transform(chunk, encoding, callback) {
     callback(null, chunk);
