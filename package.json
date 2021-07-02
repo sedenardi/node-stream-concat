@@ -21,9 +21,11 @@
   },
   "homepage": "https://github.com/sedenardi/node-stream-concat",
   "devDependencies": {
-    "mocha": "^4.0.1"
+    "eslint": "^7.29.0",
+    "mocha": "^9.0.1"
   },
   "scripts": {
+    "lint": "eslint",
     "test": "mocha"
   }
 }
