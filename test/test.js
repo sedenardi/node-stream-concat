@@ -79,6 +79,53 @@ describe('Concatenation', function() {
     });
   });
 
+  it('should emit errors in async callback', function(done) {
+    const streams = [Readable.from(['concatenated']), Readable.from([' ']), Readable.from(['results'])];
+    const error = new Error('Stream fetch failed');
+    const combined_stream = new StreamConcat(() => {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          if (streams.length === 1)
+            return reject(error);
+          resolve(streams.shift() || null);
+        }, 10);
+      });
+    });
+
+    const chunks = [];
+    combined_stream.on('data', (chunk) => {
+      chunks.push(chunk);
+    });
+    combined_stream.on('error', (e) => {
+      assert.strictEqual(Buffer.concat(chunks).toString(), 'concatenated ');
+      assert.strictEqual(e, error);
+      done();
+    });
+  });
+
+  it('should forward errors from inner streams', function(done) {
+    const error = new Error('Stream read failed');
+    const streams = [
+      Readable.from(['concatenated']),
+      Readable.from([' ']),
+      new Readable({
+        read() { throw error; }
+      }),
+      Readable.from(['results']),
+    ];
+    const combined_stream = new StreamConcat(streams);
+
+    const chunks = [];
+    combined_stream.on('data', (chunk) => {
+      chunks.push(chunk);
+    });
+    combined_stream.on('error', (e) => {
+      assert.strictEqual(Buffer.concat(chunks).toString(), 'concatenated ');
+      assert.strictEqual(e, error);
+      done();
+    });
+  });
+
   after(function() {
     fs.unlinkSync(outputPath);
     fs.unlinkSync(outputPathIssue6);
