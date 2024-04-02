@@ -31,8 +31,11 @@ class StreamConcat extends Transform {
         this.canAddStream = false;
         this.end();
       } else if (typeof this.currentStream.then === 'function') {
-        try { this.currentStream = await this.currentStream; }
-        catch(e){ return this.emit('error', e); }
+        try {
+          this.currentStream = await this.currentStream;
+        } catch(e) {
+          return this.emit('error', e);
+        }
         await pipeStream();
       } else {
         this.currentStream.pipe(this, { end: false });
@@ -45,7 +48,7 @@ class StreamConcat extends Transform {
           await this.nextStream();
         };
   
-        this.currentStream.once('error', e=>this.emit('error', e));
+        this.currentStream.once('error', (e) => this.emit('error', e));
         this.currentStream.on('end', goNext);
         if (this.options.advanceOnClose) {
           this.currentStream.on('close', goNext);
