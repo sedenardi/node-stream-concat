@@ -51,7 +51,7 @@ const combinedStream = new StreamConcat(nextStream);
 
 Once StreamConcat is done with a stream it'll call `nextStream` and start using the returned stream (if not null).
 
-Additionally, the function you pass to the constructor can return a `Promise` that resolves to a `stream`.
+Additionally, the function you pass to the constructor can return a `Promise` that resolves to a `stream`. If the function fails, its error will be forwarded in an `error` event in the outer `StreamConcat` instance.
 
 ```js
 const fs = require('fs');
@@ -68,6 +68,27 @@ const nextStreamAsync = () => {
 };
 
 const combinedStream = new StreamConcat(nextStreamAsync);
+```
+
+Errors emitted in the provided streams will also be forwarded to the outer `StreamConcat` instance:
+
+```js
+const stream = require('stream');
+const StreamConcat = require('stream-concat');
+
+const fileIndex = 0;
+const nextStream = () => {
+  if (fileIndex === 3) {
+    return null;
+  }
+  return new stream.Readable({
+    read(){ throw new Error('Read failed'); }
+  }).once('error', e=>console.log('Got inner error: ', e));
+};
+
+const combinedStream = new StreamConcat(nextStream);
+// will be called with the same "Read failed" error
+combinedStream.once('error', e=>console.log('Got outer error: ', e));
 ```
 
 ## options
